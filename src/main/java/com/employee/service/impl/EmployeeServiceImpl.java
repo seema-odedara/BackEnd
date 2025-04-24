@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+//	@Autowired
+//	private EmailService emailService;
 
 	@Override
 	public LoginResponse login(LoginRequest loginRequest) {
@@ -141,7 +146,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 			emp.setContactNumber(p.test(employeeProxy.getContactNumber()) ? emp.getContactNumber()
 					: employeeProxy.getContactNumber());
-			
+
 			if (employeeProxy.getPinCode() != null) {
 				emp.setPinCode(employeeProxy.getPinCode());
 			}
@@ -199,19 +204,19 @@ public class EmployeeServiceImpl implements EmployeeService {
 //		return employeeRepo.findAll(PageRequest.of(pageNumber - 1, perPageCount,
 //				sortDirection.equals("asc") ? Direction.ASC : Direction.DESC, sortColumn));
 //	}
-	
+
 	@Override
 	public Page<Employee> getEmployeesByPage(Integer pageNumber, Integer perPageCount, String sortColumn,
-	                                         String sortDirection) {
+			String sortDirection) {
 
-	    Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortColumn);
-	    Pageable pageable = PageRequest.of(pageNumber - 1, perPageCount, sort);
+		Sort sort = Sort.by(sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC,
+				sortColumn);
+		Pageable pageable = PageRequest.of(pageNumber - 1, perPageCount, sort);
 
-	    // Use RoleEnum.USER instead of "USER"
-	    return employeeRepo.findByAccessRole(RoleEnum.USER, pageable);
+		// Use RoleEnum.USER instead of "USER"
+		return employeeRepo.findByAccessRole(RoleEnum.USER, pageable);
 	}
 
-	
 	@Override
 	public String saveBulkUsers(Integer numberOfUsers) {
 		for (int i = 1; i <= numberOfUsers; i++) {
@@ -223,61 +228,121 @@ public class EmployeeServiceImpl implements EmployeeService {
 	private Employee generateUsers() {
 		Faker f = new Faker();
 		Employee emp = new Employee();
-		
+
 		String fname = f.name().firstName();
 		emp.setName(fname);
-		
+
 		emp.setDob((f.date().birthday()).toString());
-		
+
 		emp.setEmail(fname + "@gmail.com");
-		
+
 		emp.setUsername(fname);
-		
+
 		emp.setPassword(f.internet().password());
-		
+
 		emp.setGender(GenderEnum.values()[new Random().nextInt(GenderEnum.values().length)]);
-		
+
 		emp.setAddress(f.address().fullAddress());
-		
+
 		emp.setContactNumber(f.phoneNumber().phoneNumber());
-		
+
 		try {
 			emp.setPinCode(Integer.parseInt(f.address().zipCode()));
 		} catch (Exception e) {
 			emp.setPinCode(f.number().numberBetween(100000, 999999));
 		}
-		
+
 		emp.setAccessRole(RoleEnum.valueOf("USER"));
-		
+
 		emp.setIsActive(true);
-		
-		 String IMAGE_DIR = "src/main/resources/static/images";
-		 Random r = new Random();
-		
-		 try {
-	            File[] imageFiles = new File(IMAGE_DIR).listFiles((dir, name) -> name.endsWith(".jpg") || name.endsWith(".png"));
-	            if (imageFiles != null && imageFiles.length > 0) {
-	                File imageFile = imageFiles[r.nextInt(imageFiles.length)];
-	                byte[] fileData = Files.readAllBytes(imageFile.toPath());
 
-	                emp.setFileName(imageFile.getName());
-	                emp.setFileData(fileData);
-	                emp.setFileSize((fileData.length / 1000) + "kb");
-	                emp.setContentType(Files.probeContentType(imageFile.toPath()));
-	            }
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
+		String IMAGE_DIR = "src/main/resources/static/images";
+		Random r = new Random();
 
-	        System.out.println("Fake employee created: " + emp.getUsername());
-	    
-		
+		try {
+			File[] imageFiles = new File(IMAGE_DIR)
+					.listFiles((dir, name) -> name.endsWith(".jpg") || name.endsWith(".png"));
+			if (imageFiles != null && imageFiles.length > 0) {
+				File imageFile = imageFiles[r.nextInt(imageFiles.length)];
+				byte[] fileData = Files.readAllBytes(imageFile.toPath());
+
+				emp.setFileName(imageFile.getName());
+				emp.setFileData(fileData);
+				emp.setFileSize((fileData.length / 1000) + "kb");
+				emp.setContentType(Files.probeContentType(imageFile.toPath()));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		System.out.println("Fake employee created: " + emp.getUsername());
+
 		return emp;
 	}
 
 	@Override
 	public EmployeeProxy getAdminByUsername(String username) {
 		return mapper.employeeEntityToProxy(employeeRepo.findByUsernameCaseSensitive(username).get());
+	}
+
+//	@Override
+//	public void sendResetLink(String email) {
+//		Employee emp = employeeRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("Employee not found"));
+//
+//		String token = UUID.randomUUID().toString();
+//		emp.setResetToken(token);
+//		employeeRepo.save(emp);
+//
+//		String resetLink = "http://localhost:4200/reset-password?token=" + token;
+//		emailService.sendEmail(email, "Reset Your Password", "Click here: " + resetLink);
+//	}
+//
+//	@Override
+//	public void resetPassword(String token, String newPassword) {
+//		Employee emp = employeeRepo.findByResetToken(token).orElseThrow(() -> new RuntimeException("Invalid token"));
+//
+//		emp.setPassword(newPassword); // Hash it in real case
+//		emp.setResetToken(null);
+//		employeeRepo.save(emp);
+//	}
+
+	@Override
+	public void generateResetToken(String email) {
+		System.err.println(email);
+		Employee emp = employeeRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+		String token = UUID.randomUUID().toString();
+		emp.setResetToken(token);
+		emp.setTokenExpiry(LocalDateTime.now().plusMinutes(30));
+		employeeRepo.save(emp);
+		System.out.println("http://localhost:4200/forgotpasswordpage?token=" + token);
+	}
+
+	@Override
+	public boolean validateToken(String token) {
+		Employee emp = employeeRepo.findByResetToken(token).orElse(null);
+		return emp != null && emp.getTokenExpiry().isAfter(LocalDateTime.now());
+	}
+
+	@Override
+	public void resetPassword(String token, String newPassword) {
+		Employee emp = employeeRepo.findByResetToken(token)
+				.orElseThrow(() -> new RuntimeException("Invalid or expired token"));
+
+		if (emp.getTokenExpiry().isBefore(LocalDateTime.now())) {
+			throw new RuntimeException("Token expired");
+		}
+
+//        emp.setPassword(newPassword); // Use encoder in real apps
+		emp.setResetToken(null);
+		emp.setTokenExpiry(null);
+		emp.setPassword(bCryptPasswordEncoder.encode(newPassword));
+		employeeRepo.save(emp);
+	}
+
+	@Override
+	public Page<Employee> search(String name, Integer pageNumber, Integer perPageCount ) {
+		Pageable pageable = PageRequest.of(pageNumber - 1, perPageCount);
+		return employeeRepo.findByUsernameAndAccessRole(name, RoleEnum.USER, pageable);
 	}
 
 }

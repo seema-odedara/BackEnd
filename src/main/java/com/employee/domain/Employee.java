@@ -1,5 +1,7 @@
 package com.employee.domain;
 
+import java.time.LocalDateTime;
+
 import com.employee.enums.GenderEnum;
 import com.employee.enums.RoleEnum;
 
@@ -56,5 +58,10 @@ public class Employee {
 	private String fileSize;
 
 	private String contentType;
+	
+	private String resetToken;
+    private LocalDateTime tokenExpiry;
+
+//	private String resetToken;
 
 }

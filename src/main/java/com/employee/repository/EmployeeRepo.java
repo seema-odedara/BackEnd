@@ -1,5 +1,6 @@
 package com.employee.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -20,4 +21,9 @@ public interface EmployeeRepo extends JpaRepository<Employee, Long> {
 	Optional<Employee> findByUsernameCaseSensitive(@Param("username") String username);
 	
 	Page<Employee> findByAccessRole(RoleEnum accessRole, Pageable pageable);
+	
+	Optional<Employee> findByEmail(String email);
+    Optional<Employee> findByResetToken(String resetToken);
+    
+    Page<Employee> findByUsernameAndAccessRole(String name, RoleEnum accessRole, Pageable pageable);
 }

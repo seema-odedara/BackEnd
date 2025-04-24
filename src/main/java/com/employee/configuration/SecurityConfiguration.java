@@ -37,7 +37,7 @@ public class SecurityConfiguration {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(c -> c.disable());
 		http.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/employee/login", "/employee/saveEmployee/**", "/employee/getCaptcha/**", "/employee/verifyCaptcha/**").permitAll()
+				.requestMatchers("/employee/login", "/employee/saveEmployee/**", "/employee/getCaptcha/**", "/employee/verifyCaptcha/**","/employee/validate-token/**" , "/employee/forgot-password/**", "/employee/reset-password/**").permitAll()
 				.anyRequest().authenticated());
 		http.exceptionHandling(ex->ex.authenticationEntryPoint(jwtExceptionHandler));
 		http.exceptionHandling(ex->ex.accessDeniedHandler(jwtExceptionHandler));

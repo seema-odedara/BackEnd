@@ -28,4 +28,16 @@ public interface EmployeeService {
 	public String saveBulkUsers(Integer numberOfUsers);
 	
 	public EmployeeProxy getAdminByUsername(String username);
+	
+//	public void sendResetLink(String email);
+//	
+//	public void resetPassword(String token, String newPassword);
+	
+	public void generateResetToken(String email);
+	
+	public boolean validateToken(String token);
+	
+	public void resetPassword(String token, String newPassword);
+	
+	public Page<Employee> search(String name, Integer pageNumber, Integer perPageCount);
 }
