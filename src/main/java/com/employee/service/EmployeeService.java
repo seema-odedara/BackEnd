@@ -29,10 +29,6 @@ public interface EmployeeService {
 	
 	public EmployeeProxy getAdminByUsername(String username);
 	
-//	public void sendResetLink(String email);
-//	
-//	public void resetPassword(String token, String newPassword);
-	
 	public void generateResetToken(String email);
 	
 	public boolean validateToken(String token);
@@ -40,4 +36,6 @@ public interface EmployeeService {
 	public void resetPassword(String token, String newPassword);
 	
 	public Page<Employee> search(String name, Integer pageNumber, Integer perPageCount);
+	
+	public byte[] DownloadExcelFromDatabase();
 }

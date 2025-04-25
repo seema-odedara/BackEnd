@@ -35,6 +35,7 @@ import com.employee.proxy.LoginRequest;
 import com.employee.proxy.LoginResponse;
 import com.employee.repository.EmployeeRepo;
 import com.employee.service.EmployeeService;
+import com.employee.utils.DocumentHelper;
 import com.employee.utils.JwtUtils;
 import com.employee.utils.MapperUtils;
 import com.github.javafaker.Faker;
@@ -285,27 +286,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 		return mapper.employeeEntityToProxy(employeeRepo.findByUsernameCaseSensitive(username).get());
 	}
 
-//	@Override
-//	public void sendResetLink(String email) {
-//		Employee emp = employeeRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("Employee not found"));
-//
-//		String token = UUID.randomUUID().toString();
-//		emp.setResetToken(token);
-//		employeeRepo.save(emp);
-//
-//		String resetLink = "http://localhost:4200/reset-password?token=" + token;
-//		emailService.sendEmail(email, "Reset Your Password", "Click here: " + resetLink);
-//	}
-//
-//	@Override
-//	public void resetPassword(String token, String newPassword) {
-//		Employee emp = employeeRepo.findByResetToken(token).orElseThrow(() -> new RuntimeException("Invalid token"));
-//
-//		emp.setPassword(newPassword); // Hash it in real case
-//		emp.setResetToken(null);
-//		employeeRepo.save(emp);
-//	}
-
 	@Override
 	public void generateResetToken(String email) {
 		System.err.println(email);
@@ -332,7 +312,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 			throw new RuntimeException("Token expired");
 		}
 
-//        emp.setPassword(newPassword); // Use encoder in real apps
 		emp.setResetToken(null);
 		emp.setTokenExpiry(null);
 		emp.setPassword(bCryptPasswordEncoder.encode(newPassword));
@@ -343,6 +322,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 	public Page<Employee> search(String name, Integer pageNumber, Integer perPageCount ) {
 		Pageable pageable = PageRequest.of(pageNumber - 1, perPageCount);
 		return employeeRepo.findByUsernameAndAccessRole(name, RoleEnum.USER, pageable);
+	}
+	
+	@Override
+	public byte[] DownloadExcelFromDatabase() {
+		List<Employee> employeees = employeeRepo.findByAccessRole(RoleEnum.USER);
+		return DocumentHelper.DownloadExcelFromDatabase(employeees);
 	}
 
 }

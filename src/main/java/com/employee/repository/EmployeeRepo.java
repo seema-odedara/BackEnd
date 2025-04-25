@@ -26,4 +26,6 @@ public interface EmployeeRepo extends JpaRepository<Employee, Long> {
     Optional<Employee> findByResetToken(String resetToken);
     
     Page<Employee> findByUsernameAndAccessRole(String name, RoleEnum accessRole, Pageable pageable);
+    
+    List<Employee> findByAccessRole(RoleEnum accessRole);
 }

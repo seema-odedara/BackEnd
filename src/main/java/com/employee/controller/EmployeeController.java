@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -83,50 +84,10 @@ public class EmployeeController {
 		return employeeService.saveBulkUsers(numberOfUsers);
 	}
 
-//	private final Cage cage = new GCage();
-//
-//    @GetMapping(value = "/getCaptcha", produces = MediaType.IMAGE_JPEG_VALUE)
-//    public ResponseEntity<byte[]> getCaptcha(HttpSession session) throws IOException {
-//        String token = cage.getTokenGenerator().next();
-//        session.setAttribute("captcha", token);
-//        ByteArrayOutputStream os = new ByteArrayOutputStream();
-//        cage.draw(token, os);
-//        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(os.toByteArray());
-//    }
-//
-//    @CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
-//    @PostMapping("/verifyCaptcha")
-//    public ResponseEntity<String> verifyCaptcha(@RequestBody Map<String, String> payload, HttpSession session) {
-//    	System.err.println("in controller");
-//        String userInput = payload.get("captcha");
-//        String sessionCaptcha = (String) session.getAttribute("captcha");
-//
-//        if (userInput != null && userInput.equals(sessionCaptcha)) {
-//            return ResponseEntity.ok("Captcha Verified");
-//        } else {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Captcha Invalid");
-//        }
-//    }
-
 	@GetMapping("/getAdminByUsername/{username}")
 	public ResponseEntity<EmployeeProxy> getAdminByUsername(@PathVariable String username) {
 		return new ResponseEntity<EmployeeProxy>(employeeService.getAdminByUsername(username), HttpStatus.OK);
 	}
-
-//	@PostMapping("/forgot-password")
-//    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody EmailRequest request) {
-//		System.err.println("incontroller");
-//        employeeService.sendResetLink(request.getEmail());
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "Reset link sent");
-//        return ResponseEntity.ok(response);
-//    }
-//
-//    @PostMapping("/reset-password")
-//    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-//    	employeeService.resetPassword(request.getToken(), request.getNewPassword());
-//        return ResponseEntity.ok("Password updated");
-//    }
 
 	@PostMapping("/forgot-password/{payload}")
 	public ResponseEntity<?> forgotPassword(@PathVariable String payload) {
@@ -157,6 +118,16 @@ public class EmployeeController {
 	public ResponseEntity<Page<Employee>> search(@PathVariable String name, @PathVariable Integer pageNumber, @PathVariable Integer perPageCount) {
 		Page<Employee> emp = employeeService.search(name, pageNumber, perPageCount);
 		return ResponseEntity.ok(emp);
+	}
+	
+	@GetMapping("/DownloadExcelFromDatabase")
+	public ResponseEntity<?> DownloadExcelFromDatabase() {
+		final String FileName = "employee_data.xlsx";
+		byte[] downloadExcelFromDatabase = employeeService.DownloadExcelFromDatabase();
+		return ResponseEntity
+				.status(HttpStatus.OK)
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + FileName + "\"")
+				.body(downloadExcelFromDatabase);
 	}
 
 }
